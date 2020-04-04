@@ -2,6 +2,7 @@ import sys
 import os
 from collections import deque
 import requests
+from bs4 import BeautifulSoup
 
 
 def check_url(url):
@@ -20,9 +21,9 @@ def is_file(filename, directory):
 
 
 def save_site(content, url, save_dir):
-    site_name = url.split('.com')[0]
+    site_name = '.'.join(url.split('.')[:-1])
     save_file = os.path.join(save_dir, site_name)
-    content = content.split('\n')
+
     with open(save_file, 'w') as f:
         for line in content:
             f.write(line + '\n')
@@ -34,6 +35,21 @@ def open_site(url):
     if r.status_code == 200:
         return r.text
 
+
+def parsing(page):
+    soup = BeautifulSoup(page.content, 'html.parser')
+
+    body = soup.find('body')
+
+    paragraphs = body.find_all(['p', 'a', 'ul', 'ol', 'li',
+                                'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+                                'title'])
+    out = []
+    for p in paragraphs:
+        text = p.get_text().strip().replace('\n', ' ')
+        print(text)
+        out.append(text)
+    return out
 
 if __name__ == '__main__':
 
@@ -58,8 +74,9 @@ if __name__ == '__main__':
             break
 
         if check_url(site):
-            print(open_site(site))
-            save_site(open_site(site), site, dir_out)
+            page = open_site(site)
+            text = parsing(requests.get("https://" + site))
+            save_site(text, site, dir_out)
             my_stack.append(site)
             last = site
         elif site == 'back' and len(my_stack):
