@@ -3,7 +3,7 @@ import os
 from collections import deque
 import requests
 from bs4 import BeautifulSoup
-
+from colorama import Fore
 
 def check_url(url):
     if '.' not in url:
@@ -47,7 +47,10 @@ def parsing(page):
     out = []
     for p in paragraphs:
         text = p.get_text().strip().replace('\n', ' ')
-        print(text)
+        if p.name == 'a':
+            print(Fore.BLUE + text)
+        else:
+            print(text)
         out.append(text)
     return out
 
